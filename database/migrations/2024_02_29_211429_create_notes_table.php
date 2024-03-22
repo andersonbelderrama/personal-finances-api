@@ -28,7 +28,5 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('notes');
-        Schema::dropIndex(['entity_id', 'entity_type']);
-
     }
 };
