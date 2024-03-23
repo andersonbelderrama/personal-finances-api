@@ -9,7 +9,7 @@ use App\Models\Budget;
 use App\Models\Category;
 use App\Models\Debt;
 use App\Models\Note;
-use App\Models\RecurrentTransaction;
+use App\Models\RecurrentExpense;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -37,7 +37,7 @@ class DatabaseSeeder extends Seeder
         Category::factory(20)->create();
         Debt::factory(30)->create();
         Budget::factory(5)->create();
-        RecurrentTransaction::factory(10)->create();
+        RecurrentExpense::factory(10)->create();
         Transaction::factory(100)->create();
         Note::factory(20)->create();
 

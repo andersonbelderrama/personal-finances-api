@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class RecurrentTransacionResource extends JsonResource
+class RecurrentExpenseResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -19,12 +19,12 @@ class RecurrentTransacionResource extends JsonResource
             'name' => $this->name,
             'description' => $this->description,
             'value' => $this->value,
-            'type' => $this->type,
             'is_paid' => $this->is_paid,
             'is_active' => $this->is_active,
             'recurrent_date' => $this->recurrent_date,
-            'recurrence_frequency' => $this->recurrence_frequency,
+            'recurrence_frequency' => $this->recurrence_frequency->label(),
             'category' => new CategoryResource($this->whenLoaded('category')),
+            'account' => new AccountResource($this->whenLoaded('account')),
             'transactions' => new TransactionResource($this->whenLoaded('transactions')),
             'created_at' => $this->created_at->format('d-m-Y H:i:s'),
             'updated_at' => $this->updated_at->format('d-m-Y H:i:s'),

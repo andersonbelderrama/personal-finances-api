@@ -44,6 +44,11 @@ class Account extends Model
         return $this->hasMany(Transaction::class);
     }
 
+    public function recurrentExpenses() : HasMany
+    {
+        return $this->hasMany(RecurrentExpense::class);
+    }
+
     public function scopeMinBalance(Builder $query, $value)
     {
         return $query->where('balance', '>=', $value);

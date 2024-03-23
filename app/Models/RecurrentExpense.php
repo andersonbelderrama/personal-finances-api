@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Enums\RecurrentFrequency;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class RecurrentTransaction extends Model
+class RecurrentExpense extends Model
 {
     use HasFactory;
 
@@ -15,12 +17,18 @@ class RecurrentTransaction extends Model
         'name',
         'description',
         'value',
-        'type',
         'is_paid',
+        'is_active',
         'recurrent_date',
         'recurrence_frequency',
         'category_id',
         'account_id',
+    ];
+
+    protected $casts = [
+        'is_paid' => 'boolean',
+        'is_active' => 'boolean',
+        'recurrence_frequency' => RecurrentFrequency::class,
     ];
 
     public function category() : BelongsTo
@@ -33,8 +41,9 @@ class RecurrentTransaction extends Model
         return $this->belongsTo(Account::class);
     }
 
-    public function transactions() : HasMany
+    public function transactions() : BelongsToMany
     {
-        return $this->hasMany(Transaction::class);
+        return $this->belongsToMany(Transaction::class, 'transaction_recurrent_expenses');
     }
+
 }
