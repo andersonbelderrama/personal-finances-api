@@ -2,48 +2,72 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreTransactionRequest;
+use App\Http\Requests\UpdateTransactionRequest;
+use App\Http\Resources\TransactionResource;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class TransactionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+
+    public function index(Request $request)
     {
-        //
+        $transactions = QueryBuilder::for(Transaction::class)
+            ->allowedFilters([
+                'name',
+                'type',
+                'is_paid',
+                AllowedFilter::scope('minValue'),
+                AllowedFilter::scope('maxValue')
+            ])
+            ->allowedIncludes('category', 'account')
+            ->paginate($request->get('per_page', 10));
+
+        return TransactionResource::collection($transactions);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StoreTransactionRequest $request)
     {
-        //
+        $validate = $request->validated();
+
+        $transaction = Transaction::create($validate);
+
+        if ($request->has('relationship')) {
+            $transaction->load('category', 'account');
+        }
+
+        return new TransactionResource($transaction);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Transaction $transaction)
+    public function show(Transaction $transaction, Request $request)
     {
-        //
+        if ($request->has('relationship')) {
+            $transaction->load('category', 'account');
+        }
+
+        return new TransactionResource($transaction);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Transaction $transaction)
+    public function update(UpdateTransactionRequest $request, Transaction $transaction)
     {
-        //
+        $validate = $request->validated();
+
+        $transaction->update($validate);
+
+        if ($request->has('relationship')) {
+            $transaction->load('category', 'account');
+        }
+
+        return new TransactionResource($transaction);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Transaction $transaction)
     {
-        //
+        $transaction->delete();
+
+        return response()->noContent();
     }
 }
