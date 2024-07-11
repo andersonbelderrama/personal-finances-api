@@ -20,11 +20,11 @@ Route::get('user', function (Request $request) {
     return $request->user();
 });
 
-Route::middleware(['auth:sanctum'])->group(function () {
+// Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('accounts', AccountController::class);
     Route::apiResource('categories', CategoryController::class);
     Route::apiResource('debts', DebtController::class);
     Route::apiResource('budgets', BudgetController::class);
     Route::apiResource('recurrent-expenses', RecurrentExpenseController::class);
     Route::apiResource('transactions', TransactionController::class);
-});
+// });

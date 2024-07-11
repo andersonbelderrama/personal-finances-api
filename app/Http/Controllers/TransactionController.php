@@ -6,6 +6,7 @@ use App\Http\Requests\StoreTransactionRequest;
 use App\Http\Requests\UpdateTransactionRequest;
 use App\Http\Resources\TransactionResource;
 use App\Models\Transaction;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
@@ -13,61 +14,91 @@ use Spatie\QueryBuilder\QueryBuilder;
 class TransactionController extends Controller
 {
 
-    public function index(Request $request)
-    {
-        $transactions = QueryBuilder::for(Transaction::class)
-            ->allowedFilters([
-                'name',
-                'type',
-                'is_paid',
-                AllowedFilter::scope('minValue'),
-                AllowedFilter::scope('maxValue')
-            ])
-            ->allowedIncludes('category', 'account')
-            ->paginate($request->get('per_page', 10));
+      public function index(Request $request)
+      {
+            // Pagina as transações com base nos filtros e inclui os relacionamentos
+            $transactions = QueryBuilder::for(Transaction::class)
+                  ->allowedFilters([
+                        'name',
+                        'type',
+                        AllowedFilter::exact('is_paid'),
+                        AllowedFilter::scope('minValue'),
+                        AllowedFilter::scope('maxValue')
+                  ])
+                  ->allowedIncludes('category', 'account')
+                  ->orderByRaw("COALESCE(payment_date, created_at) DESC") // Ordena por payment_date (ou created_at se payment_date for null)
+                  ->paginate($request->get('per_page', 10));
 
-        return TransactionResource::collection($transactions);
-    }
+            // Agrupa e ordena as transações pela data `payment_date` e id
+            $groupedTransactions = $transactions->getCollection()
+                  ->groupBy(fn ($transaction) => Carbon::parse($transaction->payment_date ?? $transaction->created_at)->format('Y-m-d'))
+                  ->map(fn ($transactions) => $transactions->sortByDesc('id'));
 
-    public function store(StoreTransactionRequest $request)
-    {
-        $validate = $request->validated();
+            // Transforma a coleção agrupada em uma estrutura adequada para o recurso
+            $groupedTransactionsResource = $groupedTransactions->map(function ($transactions, $date) {
+                  return [
+                        'date' => $date,
+                        'transactions' => TransactionResource::collection($transactions),
+                  ];
+            });
 
-        $transaction = Transaction::create($validate);
+            // Retorna os dados agrupados com paginação
+            return response()->json([
+                  'data' => $groupedTransactionsResource->values(),
+                  'meta' => [
+                        'current_page' => $transactions->currentPage(),
+                        'per_page' => $transactions->perPage(),
+                        'total' => $transactions->total(),
+                  ],
+                  'links' => [
+                        'first' => $transactions->url(1),
+                        'last' => $transactions->url($transactions->lastPage()),
+                        'prev' => $transactions->previousPageUrl(),
+                        'next' => $transactions->nextPageUrl(),
+                  ],
+            ]);
+      }
 
-        if ($request->has('relationship')) {
-            $transaction->load('category', 'account');
-        }
 
-        return new TransactionResource($transaction);
-    }
+      public function store(StoreTransactionRequest $request)
+      {
+            $validate = $request->validated();
 
-    public function show(Transaction $transaction, Request $request)
-    {
-        if ($request->has('relationship')) {
-            $transaction->load('category', 'account');
-        }
+            $transaction = Transaction::create($validate);
 
-        return new TransactionResource($transaction);
-    }
+            if ($request->has('relationship')) {
+                  $transaction->load('category', 'account');
+            }
 
-    public function update(UpdateTransactionRequest $request, Transaction $transaction)
-    {
-        $validate = $request->validated();
+            return new TransactionResource($transaction);
+      }
 
-        $transaction->update($validate);
+      public function show(Transaction $transaction, Request $request)
+      {
+            if ($request->has('relationship')) {
+                  $transaction->load('category', 'account');
+            }
 
-        if ($request->has('relationship')) {
-            $transaction->load('category', 'account');
-        }
+            return new TransactionResource($transaction);
+      }
 
-        return new TransactionResource($transaction);
-    }
+      public function update(UpdateTransactionRequest $request, Transaction $transaction)
+      {
+            $validate = $request->validated();
 
-    public function destroy(Transaction $transaction)
-    {
-        $transaction->delete();
+            $transaction->update($validate);
 
-        return response()->noContent();
-    }
+            if ($request->has('relationship')) {
+                  $transaction->load('category', 'account');
+            }
+
+            return new TransactionResource($transaction);
+      }
+
+      public function destroy(Transaction $transaction)
+      {
+            $transaction->delete();
+
+            return response()->noContent();
+      }
 }

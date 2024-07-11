@@ -24,7 +24,7 @@ class TransactionFactory extends Factory
             'name' => 'Transação ' . $this->faker->word(),
             'description' => $this->faker->sentence,
             'value' => $this->faker->randomFloat(2, 0, 2000),
-            'payment_date' => $this->faker->date(),
+            'payment_date' => $this->faker->dateTimeThisYear('+6 months'),
             'type' => $this->faker->randomElement([1, 2, 3]),
             'is_paid' => $this->faker->boolean,
             'category_id' => Category::inRandomOrder()->first()->id,

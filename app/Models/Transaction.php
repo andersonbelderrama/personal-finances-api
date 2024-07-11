@@ -10,44 +10,48 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Transaction extends Model
 {
-    use HasFactory;
+      use HasFactory;
 
 
-    protected $fillable = [
-        'name',
-        'description',
-        'value',
-        'payment_date',
-        'due_date',
-        'type',
-        'is_paid',
-        'category_id',
-        'account_id'
-    ];
+      protected $fillable = [
+            'name',
+            'description',
+            'value',
+            'payment_date',
+            'due_date',
+            'type',
+            'is_paid',
+            'category_id',
+            'account_id'
+      ];
 
-    protected $casts = [
-        'is_paid' => 'boolean',
-        'type' => TransactionType::class
-    ];
+      protected $casts = [
+            'is_paid' => 'boolean',
+            'type' => TransactionType::class
+      ];
 
-    public function category() : BelongsTo
-    {
-        return $this->belongsTo(Category::class);
-    }
+      protected $dates = [
+            'payment_date',
+            'due_date'
+      ];
 
-    public function account() : BelongsTo
-    {
-        return $this->belongsTo(Account::class);
-    }
+      public function category(): BelongsTo
+      {
+            return $this->belongsTo(Category::class);
+      }
 
-    public function scopeMinValue(Builder $query, $value)
-    {
-        return $query->where('value', '>=', $value);
-    }
+      public function account(): BelongsTo
+      {
+            return $this->belongsTo(Account::class);
+      }
 
-    public function scopeMaxValue(Builder $query, $value)
-    {
-        return $query->where('value', '<=', $value);
-    }
+      public function scopeMinValue(Builder $query, $value)
+      {
+            return $query->where('value', '>=', $value);
+      }
 
+      public function scopeMaxValue(Builder $query, $value)
+      {
+            return $query->where('value', '<=', $value);
+      }
 }
