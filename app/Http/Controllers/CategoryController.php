@@ -19,7 +19,7 @@ class CategoryController extends Controller
                 'name',
                 'description'
             ])
-            ->paginate($request->get('per_page', 10));
+            ->paginate($request->get('per_page'));
 
         return CategoryResource::collection($categories);
     }

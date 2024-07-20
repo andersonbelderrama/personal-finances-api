@@ -54,4 +54,27 @@ class Transaction extends Model
       {
             return $query->where('value', '<=', $value);
       }
+
+      public function scopeType(Builder $query, $value)
+      {
+            $type = TransactionType::fromLabel($value);
+
+            if ($type !== null) {
+                  return $query->where('type', '=', $type->value);
+            }
+
+            return $query;
+      }
+
+      public function scopeCategory(Builder $query, $categories)
+      {
+            if (!is_array($categories)) {
+                  $categories = [$categories];
+            }
+            if (count($categories)) {
+                  return $query->whereIn('category_id', $categories);
+            }
+
+            return $query;
+      }
 }

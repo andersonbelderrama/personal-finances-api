@@ -20,7 +20,8 @@ class TransactionController extends Controller
             $transactions = QueryBuilder::for(Transaction::class)
                   ->allowedFilters([
                         'name',
-                        'type',
+                        AllowedFilter::scope('category'),
+                        AllowedFilter::scope('type'),
                         AllowedFilter::exact('is_paid'),
                         AllowedFilter::scope('minValue'),
                         AllowedFilter::scope('maxValue')
@@ -49,6 +50,7 @@ class TransactionController extends Controller
                         'current_page' => $transactions->currentPage(),
                         'per_page' => $transactions->perPage(),
                         'total' => $transactions->total(),
+                        'last_page' => $transactions->lastPage(),
                   ],
                   'links' => [
                         'first' => $transactions->url(1),
